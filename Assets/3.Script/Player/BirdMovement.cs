@@ -16,37 +16,38 @@ public class BirdMovement : MonoBehaviour
     private int Speed;
 
     public Animator BirdAnimator;
-
-    public TextMeshProUGUI ScoreText;
     private int Score;
+
+    private Item item;
 
     private void OnTriggerEnter(Collider other)
     {
         //튜브에 지정한 큐브에 닿을때마다 점수증가 (튜브에닿지않고 넘어가면)
-        if(other.tag == "Score")
+        if(other.CompareTag("Score"))
         {
-            Score++;
+            GameManager.instance.AddScore(1);
         }
         //튜브에 닿으면 처음씬으로 넘어감(사망)
-        if(other.tag == "Obstacle")
+        if(other.CompareTag("DeadZone") && !(item.isGoast))
         {
-            SceneManager.LoadScene("SampleScene");
+            GameManager.instance.PlayerDead();
+            item.ink_img.gameObject.SetActive(false);
         }
     }
 
     private void Start()
     {
         Controller = gameObject.GetComponent<CharacterController>();
+        item = gameObject.GetComponent<Item>();
     }
 
     private void Update()
     {
-        ScoreText.text = Score.ToString();
-
+        if (GameManager.instance.isGameover) return;
         Velocity.y += -15 * Time.deltaTime;
 
         //스페이스바 입력 = 점프
-        if (Input.GetKey("space") && Cooldown == false)
+        if ((Input.anyKeyDown || Input.touchCount > 0) && !Cooldown)
         {
             //점프 쿨타임
             Cooldown = true;

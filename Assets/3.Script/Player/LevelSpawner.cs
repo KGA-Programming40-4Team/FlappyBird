@@ -15,6 +15,7 @@ public class LevelSpawner : MonoBehaviour
 
     private Vector3 Poolposition = new Vector3(0, 0, -200f);
 
+    private GameObject gameobj;
     private void Awake()
     {
         Create_Platform();
@@ -49,6 +50,7 @@ public class LevelSpawner : MonoBehaviour
             timeBetSpawn = 1.9f;
             Templates[current_index].SetActive(false);
             Templates[current_index].SetActive(true);
+            GameObject.FindGameObjectWithTag("Item").GetComponent<ItemSpawn>().SelItem();
 
             Templates[current_index].transform.position = new Vector3(0, 0, -60);
 

@@ -1,26 +1,19 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System;
 using System.IO;
+using LitJson;
 
 // 2.2 Json 데이터 클래스 생성
-[Serializable]
-public class JsonData
-{
-    public string name;
-    public int age;
-    public float height;
-    public bool man;
-    public string description;
-    public string[] tools;
-}
 
 public class DataManager : MonoBehaviour
 {
     // 싱글톤
     public static DataManager instance = null;
-    public Data playerData = new Data();
     string path;
-    string fileName = "saveRanking";
+    string fileName = "database.json";
+    string data = "";
+
 
     private void Awake()
     {
@@ -35,31 +28,50 @@ public class DataManager : MonoBehaviour
             Destroy(gameObject);
         }
         #endregion
-        path = Application.persistentDataPath + "/";
+        path = Path.Combine(Application.dataPath + "/9.Data/");
         Debug.Log(path);
-    }
 
-    private void Start()
-    {
         LoadData();
     }
 
+
     public void SaveData()
     {
-        string data = JsonUtility.ToJson(playerData);
-        File.WriteAllText(path + fileName, data);
+        //User[] users = GameManager.users.ToArray();
+        Data newData = new Data
+        {
+            users = GameManager.users.ToArray()
+        };
+
+        string json = JsonUtility.ToJson(newData);
+        json = json.Replace("\"users\":", "");
+        json = json.TrimEnd('}');
+        json = json.TrimStart('{');
+        Debug.Log(json);
+
+        File.WriteAllText(path + fileName, json);
     }
 
     public void LoadData()
     {
-        string data = File.ReadAllText(path + fileName);
-        playerData = JsonUtility.FromJson<Data>(data);
-        Debug.Log(playerData.nickname + ", " + playerData.score);
-    }
-}
+        string nickname = "";
+        int score = 0;
+        data = File.ReadAllText(path + fileName);
+        JsonData jsonData = JsonMapper.ToObject(data);
 
-public class Data
-{
-    public string nickname; // 닉네임
-    public int score;       // 점수
+        for (int i = 0; i < jsonData.Count; i++)
+        {
+            nickname = jsonData[i]["nickname"].ToString();
+            score = int.Parse(jsonData[i]["score"].ToString());
+            GameManager.users.Add(new User(nickname, score));
+            Debug.Log(GameManager.users[i].nickname + ", " + GameManager.users[i].score);
+        }
+
+
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveData();
+    }
 }
